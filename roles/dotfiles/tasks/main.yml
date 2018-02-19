@@ -1,0 +1,6 @@
+---
+- name: grabbing dotfiles
+  git: repo=https://github.com/zulcss/dotfiles dest=~/dotfiles
+
+- name: installing dotfiles
+  command: ~/dotfiles/bin/bootstrap

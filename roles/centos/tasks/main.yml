@@ -1,0 +1,5 @@
+---
+- name: Ensure latest and greatest
+  yum: name=* state=latest
+  become: yes
+

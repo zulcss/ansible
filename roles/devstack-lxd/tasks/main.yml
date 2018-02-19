@@ -1,0 +1,28 @@
+---
+- name: Install dependencies
+  apt: pkg={{ item }} state=latest
+  with_items:
+      - python
+      - python-pip
+      - build-essential
+  become: yes
+
+- name: fetch devstack git
+  git: repo=https://github.com/openstack-dev/devstack dest=~/devstack
+
+- name: fetch pylxd git
+  git: repo=https://github.com/lxc/pylxd dest=~/pylxd
+
+- name: Install requests-unixsocket
+  raw: sudo pip install requests-unixsocket
+
+- name: Install pylxd
+  raw: sudo pip install ~/pylxd
+
+- name: configure local.conf
+  copy: src=local.conf dest=~/devstack
+
+- name: Run devstack
+  command: ./stack.sh
+  args:
+      chdir: ~/devstack

@@ -1,0 +1,7 @@
+---
+- name: update cache
+  apt: update_cache=yes
+  become: yes
+
+- name: upgrade all packgaes
+  raw: sudo apt-get upgrade -y

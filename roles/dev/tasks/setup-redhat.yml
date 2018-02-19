@@ -1,0 +1,18 @@
+--
+- name: enablle epel
+  yum:
+      name: epel-release
+      state: latest
+  become: yes
+
+- name: enable dnf copr repo
+  get_url:
+      url: https://copr.fedorainfracloud.org/coprs/g/rpm-software-management/dnf-centos/repo/epel-7/group_rpm-software-management-dnf-centos-epel-7.repo
+      dest: /etc/yum.repos.d/dnf-centos.repo
+  become: yes
+
+- name: install latest dnf with plugins
+  package:
+      name: dnf,dnf-plugins-core
+      state: latest
+  become: yes
