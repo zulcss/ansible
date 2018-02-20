@@ -1,0 +1,53 @@
+---
+- name: Fetch kolla-ansible
+  git: repo=https://git.openstack.org/openstack/kolla-ansible dest=~/kolla-ansible
+
+- name: Fetch kolla
+  git: repo=https://git.openstack.org/openstack/kolla dest=~/kolla
+
+- name: Install epel-release
+  yum: name={{ item }} state=latest
+  with_items:
+      - epel-release
+  become: yes
+
+- name: Install dependencies
+  yum: name={{ item }} state=latest
+  with_items:
+      - python2-pip
+      - python-devel
+      - libffi-devel
+      - gcc
+      - openssl-devel
+      - libselinux-python
+  become: yes
+
+- name: Update python-pip
+  raw: sudo pip install -U pip
+
+- name: Install ansible config
+  copy: src=local.conf dest=/etc/ansible/ansible.cfg
+  become: yes
+
+- name: Install kolla-ansble
+  pip: 
+    name: kolla-ansible
+  become: yes
+
+- name: Install kolla-ansible config
+  raw: sudo cp -r /usr/share/kolla-ansible/etc_examples/kolla /etc/kolla
+
+- name: Install inventory
+  raw: cp /usr/share/kolla-ansible/ansible/inventory/all-in-one ${HOME}
+
+- name: Copy kolla-ansble stuff
+  raw: sudo cp -r ~vagrant/kolla-ansible/etc/kolla /etc/kolla/
+
+- name: Update kolla
+  raw: sudo pip install ~vagrant/kolla
+
+- name: Update kolla-ansible
+  raw: sudo pip install ~vagrant/kolla-ansible
+
+- name: Genpasswd
+  raw: sudo kolla-genpwd
