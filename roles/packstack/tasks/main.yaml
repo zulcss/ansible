@@ -1,0 +1,32 @@
+---
+- name: Ensure the latest and greatest
+  yum: name=* state=latest
+  become: yes
+
+- name: Install RDO
+  yum: name=https://www.rdoproject.org/repos/rdo-release.rpm state=present
+  become: yes
+
+- name: Installl packages
+  yum: name={{ item }} state=installed
+  with_items:
+      - git
+      - vim
+      - epel-release
+      - yum-utils
+      - centos-release-openstack-queens
+  become: yes
+
+- name: Configure openstack-queens
+  shell: yum-config-manager --enable openstack-queens
+  become: yes
+
+- name: Update yum again
+  yum: name=* state=latest
+  become: yes
+
+- name: install packstack
+  yum: name={{ item }} state=installed state=latest
+  with_items:
+      - openstack-packstack
+  become: yes
