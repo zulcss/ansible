@@ -1,0 +1,15 @@
+---
+- name: Ensure latest and greatest
+  yum: name=* state=latest
+  become: yes
+
+- name: Install packages
+  yum: name={{ item }} state=installed
+  with_items:
+      - git
+      - vim
+      - python-dev
+      - python-tox
+      - python-pip
+      - git
+  become: yes
