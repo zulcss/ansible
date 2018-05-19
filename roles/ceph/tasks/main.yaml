@@ -1,0 +1,30 @@
+---
+- name: Create the ceph user
+  become: yes
+  user:
+      name: ceph
+      group: wheel
+      generate_ssh_key: yes
+
+- name: Allow ceph user to sudo without a password
+  become: yes
+  lineinfile: dest=/etc/sudoers state=present regexp='^%admin' line='%admin ALL=(ALL) ALL'
+
+- name: Setup the yum repository
+  become: yes
+  yum_repository:
+    name: ceph
+    description: ceph repo
+    baseurl: https://download.ceph.com/rpm-luminous/el7/noarch
+
+- name: Install ntpd
+  become: yes
+  yum: name={{ item }} state=installed
+  with_items:
+      - ntpdate
+      - ntp
+      - ntp-doc
+
+- name: Disable selinux
+  become: yes
+  shell: setenforce 0
