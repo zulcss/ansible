@@ -1,0 +1,59 @@
+---
+- name: Install software
+  become: true
+  block:
+      - name: Install epel repository
+        when: base_image == 'centos'
+        yum:
+            name: epel-release
+            state: present
+
+      - name: Remove beaker repositories
+        when: base_image == 'rhel'
+        command: rm -f /etc/yum.repos.d/beaker-*
+
+      - name: Configure RHOSP repos
+        when: base_image == 'rhel'
+        block:
+            - name: Install rhos-release 
+              yum:
+                  name: "http://rhos-release.virt.bos.redhat.com/repos/rhos-release/rhos-release-latest.noarch.rpm"
+                  state: present
+            - name: Setup OSP version to install
+              command: rhos-release {{rhos_release}} -p {{build}} -r {{rhel_version}}
+
+      - name: Configure RDO repos
+        when: base_image == 'centos'
+        block:
+            - name: fetch latest repo version
+              shell: |
+                  curl -s https://trunk.rdoproject.org/centos7/current/ | awk '/python2-tripleo-repos/ { print $6}' | cut -d '"' -f 2
+              register: tripleo_repo_version
+            - name: install rdo repository
+              yum:
+                  name: "https://trunk.rdoproject.org/centos7/current/{{tripleo_repo_version.stdout}}"
+                  state: present
+            - name: enable rdo repository
+              command: tripleo-repos -b "{{tripleo_version}}" current-tripleo
+
+      - name: Update packages
+        yum:
+            name: '*'
+            state: present
+
+      - name: Install packages
+        yum:
+            name: "{{item}}"
+            state: present
+        loop:
+            - git
+            - vim
+            - tmux
+            - python-tripleoclient
+            - deltarpm
+            - yum-utils
+            - ceph-ansible
+            - util-linux
+            - libguestfs-tools
+        # ceph-ansible is not available for rdo
+        ignore_errors: true

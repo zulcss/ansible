@@ -1,0 +1,4 @@
+rhos_version: 14
+local_interface: eth0
+stackname: stack
+netmask: 24

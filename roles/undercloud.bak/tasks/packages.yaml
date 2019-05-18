@@ -1,0 +1,62 @@
+- name: Install packages
+  block:
+      - name: Install epel-release
+        when:
+            - base_image == 'centos'
+        yum:
+            name: epel-release
+            state: present
+  become: yes
+
+- name: Configure RDO repos
+  when:
+      - base_image == 'centos'
+  block:
+      - name: set delorean repository from upstream
+        block:
+            - name: fetch latest repo version
+              shell: |
+                  curl -s https://trunk.rdoproject.org/centos7/current/ | awk '/python2-tripleo-repos/ { print $6}' | cut -d '"' -f 2
+              register: tripleo_repo_version
+            - debug: msg="{{ tripleo_repo_version.stdout }}"
+            - name: Install tripleo repository
+              yum:
+                  name: "https://trunk.rdoproject.org/centos7/current/{{tripleo_repo_version.stdout}}"
+                  state: present
+            - name: Enable tripleo version repository
+              command: tripleo-repos -b "{{tripleo_version}}" current-tripleo
+  become: yes
+
+- name: Configure RHOSP repos
+  when:
+      - base_image == 'rhel'
+  block:
+      - name: Remove beaker repo
+        shell: rm -rf /etc/yum/repos.d/beaker-*
+      - name: Install rhos-release is installed
+        yum:
+            name: "{{ rhos_rlease_url }}"
+            state: installed
+      - name: yum-clean-metadata
+        command: yum clean metadata
+      - name: Setup OSP version to install
+        command: "rhos-release {{rhos_release}} -p {{build}} -r {{rhel_version}}"
+  become: yes
+
+- name: Install packages
+  block:
+      - name: Update all packages
+        yum:
+            name: '*'
+            state: latest
+      - name: Install some tools
+        yum:
+            name: "{{ item }}"
+            state: present
+        loop:
+            - git
+            - vim
+            - tmux
+            - deltarpm
+            - python-tripleoclient
+  become: yes

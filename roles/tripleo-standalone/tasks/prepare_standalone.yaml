@@ -1,0 +1,50 @@
+- name: deploy in standalone mode
+  vars:
+      home_dir: /home/stack
+      gateway: 10.0.10.1
+      deployment_user: stack
+      netmas: 24
+      containers_images_env_template_download_basename: "overcloud_container_image_prepare.yaml"
+      containers_images_env_template_dest_file: "{{inventory_dir}}/overcloud_container_image_prepare.yaml"
+  block:
+      - name: get puddle url from the repos
+        vars:
+             repod_file: "/etc/yum.repos.d/rhos-release-{{ rhos_version}}.repo"
+        shell: |
+            cat {{ repod_file }} | awk -F "=" '/puddle_baseurl/ {print $2}' | head -n1 | grep -Po '.*(?=\/.*\/\$basearch)'
+        register: containers_puddle_base_url
+      - name: get puddle number
+        command: "/usr/bin/puddle-version {{ containers_puddle_base_url.stdout }}"
+        register: containers_puddle_number
+      - name: Downloading overcloud container images environment file
+        get_url:
+            url: "{{ containers_puddle_base_url.stdout }}/{{ containers_images_env_template_download_basename }}"
+            dest: "{{ containers_images_env_template_dest_file }}"
+            force: true
+        delegate_to: localhost
+      - name: Load variables from container environment file
+        include_vars: 
+            file: "{{ containers_images_env_template_dest_file }}"
+            name: container_env
+      - debug: var=container_env
+      - name: store ip for template
+        shell: |
+            /sbin/ifconfig {{ local_interface }} |grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*'
+        register: deploy_ip
+      - name: Generate standlone_parameters.yaml
+        vars:
+            dns_server: "10.10.160.1"
+            containers_name_prefix: "{{ container_env['container-image-prepare'].prefix }}"
+            containers_name_suffix: "{{ container_env['container-image-prepare'].name_suffix|default('') }}"
+            containers_namespace: "{{ container_env['container-image-prepare'].namespace }}"
+            containers_tag: "{{ container_env['container-image-prepare'].tag }}"
+        template:
+            src: standalone_parameters.yaml.j2
+            dest: /home/stack/standlone_parameters.yaml
+            owner: stack
+      - name: Generate standalone_deployment.sh file
+        template:
+            src: standalone_deploy.sh.j2
+            dest: /home/stack/standalone_deploy.sh
+            owner: stack
+            mode: "0755"

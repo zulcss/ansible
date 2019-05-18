@@ -1,0 +1,14 @@
+- name: Install the undercloud
+  become: true
+  become_user: stack
+  block:
+      - name: Install openstack undercloud
+        shell: |
+            set -xo pipefail
+            openstack undercloud install 2>&1 | tee -a ~/logs/undercloud_install.log
+        register: undercloud_install
+      - name: print the last 60 lines of the undercloud installation
+        command: tail -n60 ~/logs/undercloud_install.log
+      - fail:
+          msg: "undercloud deployment failed..."
+        when: undercloud_install.rc != 0

@@ -1,0 +1,15 @@
+- name: run an undercloud node
+  tags:
+      - undercloud-bootstrap
+  block:
+      - name: Prepare the deployment
+        when: prep_cloud|bool
+        block:
+            - import_tasks: prep_host.yaml
+            - import_tasks: packages.yaml
+            - import_tasks: user.yaml
+      - name: Deploy the undercloud
+        when: deploy_undercloud|bool
+        block:
+            - import_tasks: config.yaml
+            - import_tasks: undercloud.yaml

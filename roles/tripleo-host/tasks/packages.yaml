@@ -1,0 +1,62 @@
+- name: Install packages
+  become: true
+  block: 
+    - name: Install epel release
+      when: base_image == 'centos'
+      yum:
+          name: epel-release
+          state: present
+
+- name: Install RDO repos
+  when:
+      base_image == 'centos'
+  become: true
+  block:
+      - name: Fetch latest repo version
+        shell: |
+            curl -s https://trunk.rdoproject.org/centos7/current/ | awk '/python2-tripleo-repos/ { print $6}' | cut -d '"'  -f 2
+        register: tripleo_repo_version
+      - name: install tripleo repository
+        yum:
+            name: "https://trunk.rdoproject.org/centos7/current/{{tripleo_repo_version.stdout}}"
+            state: present
+      - name: enable rdo repository
+        command: tripleo-repos -b "{{rdo_version}}" current-tripleo
+
+- name: Install RHOSP repos
+  when:
+      base_image == 'rhel'
+  become: true
+  block:
+      - name: Remove beaker repo
+        shell: rm -rf /etc//etc/yum/repos.d/beaker-*
+      - name: install rhos-release
+        yum:
+            name: "{{ rhos_rlease_url }}"
+            state: installed
+      - name: yum clean metadata
+        command: yum clean metadata
+      - name: Setup OSP version to install
+        command: "rhos-release {{rhos_release}} -p {{build}} -r {{rhel_version}}"
+
+- name: Install and Update packages
+  become: yes
+  block:
+      - name: Update all packages
+        yum:
+            name: '*'
+            state: latest
+        when: update_packages|bool
+      - name: Install software
+        yum:
+            name: "{{ item }}"
+            state: present
+        loop:
+            - git
+            - vim
+            - tmux
+            - deltarpm
+            - python-tripleoclient
+            - yum-utils
+            - ceph-ansible
+            - util-linux

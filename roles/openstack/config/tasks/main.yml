@@ -1,0 +1,23 @@
+- name: Configure openstack
+  become: true
+  become_user: stack
+  block:
+      - name: Copy undercloud.conf
+        copy:
+            src: /usr/share/python-tripleoclient/undercloud.conf.sample
+            dest: /home/stack/undercloud.conf
+            group: stack
+            owner: stack
+            remote_src: True
+      - name: Configure undercloud.conf
+        ini_file:
+            path: /home/stack/undercloud.conf
+            section: "{{ item.section }}"
+            option: "{{ item.option }}"
+            value: "{{ item.value }}"
+            mode: 0640
+            backup: yes
+        loop: "{{ undercloud_config | default([]) }}"
+        loop_control:
+            label: "{{ item.option }}"
+

@@ -5,3 +5,15 @@
 
 - name: upgrade all packgaes
   raw: sudo apt-get upgrade -y
+
+- name: Install additonal packages
+  apt:
+    name: "{{ packages }}"
+  vars:
+     packages:
+     - build-essential
+     - cmake
+     - python3-dev
+     - python-dev
+     - keychain
+  become: yes

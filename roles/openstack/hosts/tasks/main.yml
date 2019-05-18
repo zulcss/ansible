@@ -1,0 +1,48 @@
+- name: Configure selinux
+  when: base_image == 'centos'
+  become: yes
+  block:
+      - name: Set slinux to permissive
+        selinux:
+            state: permissive
+            policy: targeted
+      - name: Persist permissions
+        copy:
+            dest: /etc/selinux/config
+            content: |
+                SELINUX=permissive
+                SELINUXTYPE=targeted
+
+- name: Configure hostname properly
+  become: yes
+  block:
+      - name: configure /etc/hosts properly
+        lineinfile:
+            dest: /etc/hosts
+            line: "127.0.0.1   {{ansible_fqdn}} {{ansible_hostname}} localhost localhost.localdomain localhost4 localhost4.localdomain4"
+            regexp: "127.0.0.1"
+
+- name: Configure hostname
+  become: yes
+  shell: |
+      hostnamectl set-hostname {{ansible_fqdn}}
+      hostnamectl set-hostname --transient {{ansible_fqdn}}
+
+- name: Bump MaxStartups in sshd config
+  become: yes
+  lineinfile:
+      path: /etc/ssh/sshd_config
+      regexp: "{{ item.regexp}}"
+      line: "{{ item.line }}"
+  with_items:
+      - regexp: 'MaxSessions'
+        line: 'MaxSessions 100'
+      - regexp: 'MaxStartups'
+        line: 'MaxStartups 100:30:100'
+
+- name: Retsart sshd
+  become: true
+  systemd:
+      name: sshd
+      daemon_reload: yes
+      state: restarted

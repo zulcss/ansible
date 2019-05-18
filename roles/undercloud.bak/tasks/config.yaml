@@ -1,0 +1,51 @@
+- name: Configure the undercloud
+  become: true
+  become_user: stack
+  block:
+      - name: Copy undercloud.conf sample
+        copy:
+            dest: /home/stack/undercloud.conf
+            src: /usr/share/python-tripleoclient/undercloud.conf.sample
+            owner: stack
+            group: stack
+            mode: 0640
+      - name: custom confguration in undercloud.conf
+        ini_file:
+            path: /home/stack/undercloud.conf
+            section: "{{ item.section }}"
+            option: "{{ item.option }}"
+            value: "{{ item.value }}"
+            mode: 0640
+            backup: yes
+        loop: "{{ undercloud_config |default([]) }}"
+        loop_control:
+            label: "{{ item.option }}"
+
+- name: run commands as stack user
+  become: yes
+  become_user: stack
+  block:
+      - name: setup container registry - rdo
+        template:
+            src: containers-prepare-parameter.yaml.j2
+            dest: /home/stack/containers-prepare-parameter.yaml
+        when:
+            - base_image == 'centos'
+      - name: Copy instackenv.json file
+        copy:
+            src: "{{ instackenv_json }}"
+            dest: /home/stack/instackenv.json
+            owner: stack
+      - name: push overcloud settings
+        copy:
+            dest: /home/stack/templates
+            src: "{{ item }}"
+        with_fileglob: 'files/overcloud/*.yaml'
+      - name: push scale setting
+        template:
+            dest: /home/stack/templates/scale.yaml
+            src: scale.yaml.j2
+      - name: push container-cli setting
+        template:
+            dest: /home/stack/templates/container-cli.yaml
+            src: container-cli.yaml.j2

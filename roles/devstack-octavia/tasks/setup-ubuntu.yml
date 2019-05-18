@@ -1,0 +1,40 @@
+---
+- name: Increase /opt
+  filesystem:
+      fstype: ext4
+      dev: /dev/vda
+  become: yes
+
+- name: Mount /opt
+  mount:
+      path: /opt
+      src: /dev/vda
+      fstype: ext4
+      state: mounted
+  become: yes
+
+- name: fetch devstack git
+  git: repo=https://github.com/openstack-dev/devstack dest=~/devstack
+
+- name: configure local.conf
+  copy: src=local.conf dest=~/devstack
+
+- name: Run devstack
+  command: ./stack.sh
+  args:
+      chdir: ~/devstack
+
+- pip:
+    name: 
+      - autopep8
+      - git-review
+      - tox
+  become: yes
+
+- name: Install additional packages
+  apt:
+      name: "{{ packages }}"
+  vars:
+    packages:
+    - python3-dev
+  become: yes

@@ -1,0 +1,12 @@
+---
+base_image: "rhel"
+update_packages: no
+
+# RDO
+rdo_version: rocky
+
+# RHOSP
+rhel_version: 7.6
+rhos_release: 13-director
+build: latest
+rhos_rlease_url: "http://rhos-release.virt.bos.redhat.com/repos/rhos-release/rhos-release-latest.noarch.rpm"

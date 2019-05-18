@@ -1,0 +1,8 @@
+- name: install the undercloud
+  become: true
+  become_user: stack
+  block:
+      - name: Run the openstack undercloud install
+        shell: |
+            set -xo pipefail
+            openstack undercloud install --debug &> ~/logs/undercloud_install.log

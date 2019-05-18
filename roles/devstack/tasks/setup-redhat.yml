@@ -1,0 +1,6 @@
+---
+- name: fetch devstack git
+  git: repo=https://github.com/openstack-dev/devstack dest=~/devstack
+
+- name: configure local.conf
+  copy: src=local.conf dest=~/devstack

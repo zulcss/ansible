@@ -1,0 +1,26 @@
+- name: Set selinux permissions
+  block:
+      - name: set selinux to permissive
+        selinux:
+            state: permissive
+            policy: targeted
+      - name: Persist the state
+        copy:
+            dest: /etc/selinux/config
+            content: |
+                SELINUX=permissive
+                SELINUXTYPE=targeted
+  become: true
+
+- name: Fix hosts file
+  block:
+      - name: Set hostname
+        shell: |
+            hostnamectl set-hostname {{ ansible_fqdn }}
+            hostnamectl set-hostname --transient {{ ansible_fqdn }}
+      - name: Fix the hosts file
+        lineinfile:
+            dest: /etc/hosts
+            line: "127.0.0.1   {{ ansible_fqdn }} {{ ansible_hostname }} localhost localhost.localdomain localhost4 localhost4.localdomain4"
+            regexp: "127.0.0.1"
+  become: true

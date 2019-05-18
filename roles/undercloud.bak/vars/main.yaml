@@ -1,0 +1,57 @@
+---
+# Common variables
+base_image: "centos"
+prep_cloud: yes
+deploy_undercloud: yes
+deploy_overcloud: no
+instackenv_json: "/home/chuck/instackenv.json"
+
+# RDO
+tripleo_version: "rocky"
+ceph_container_namespace: 'docker.io/ceph'
+ceph_container_tag: 'v3.2.0-stable-3.2-luminous-centos-7-x86_64'
+container_name_prefix: 'centos-binary'
+container_name_suffix: "''"
+container_namespace: 'docker.io/tripleomaster'
+container_tag: latest
+
+# RHOSP
+# Newton(10)/Ocata(11)
+##version: 10
+##rhos_release: 10-director
+##rhel_version: 7.4
+##build: "2018-02-06.2" # Newton
+
+#version: 12
+#rhos_release: 12-director
+#rhel_version: 7.4
+#build: "2018-03-21.1"
+#container_namespace: "/rhosp12"
+#containers_tag: 2018-03-21.1
+#containers_ceph_namespace: "/ceph"
+#containers_ceph_image: rhceph-2-rhel7
+#containers_ceph_tag: 2.4-4
+
+# Queens(13):
+# version: 13
+# rhos_release: 13-director
+# rhel_version: 7.6
+# build: "2018-05-07.2"
+# container_namespace: "/rhosp13"
+# containers_tag: 2018-05-07.2
+# containers_ceph_namespace: ""
+# containers_ceph_image: rhceph
+# containers_ceph_tag: 3-6
+#
+# # Rocky(14)
+# #version: 14
+# #rhos_release: 14-director
+# #rhel_version: 7.6
+# #build: "2018-11-29.3"
+# #container_namespace: "/rhosp14"
+# #containers_tag: 2018-11-29.2
+# #containers_ceph_namespace: ""
+# #containers_ceph_image: rhceph
+# #containers_ceph_tag: 3-16
+
+rhos_release_url: "http://rhos-release.virt.bos.redhat.com/repos/rhos-release/rhos-release-latest.noarch.rpm"
